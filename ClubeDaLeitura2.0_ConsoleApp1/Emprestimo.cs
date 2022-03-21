@@ -8,7 +8,7 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
 {
     internal class Emprestimo
     {
-        public string strDataAbertura,emprestadoAo,revistaEmprestada;
+        public string strDataAbertura,emprestadoAo,revistaEmprestada,revistaReservada;
         public void RegistrarEmprestimo()
         {
             Console.Clear();

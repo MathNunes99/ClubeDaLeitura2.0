@@ -10,7 +10,8 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
     {
         public string nomeDaRevista, anoDaRevista, tipoDaRevista;
         public bool disponivelParaEmprestimo = true;
-
+        public bool possuiReserva = false;
+        public bool ehNovidade = false;
         public void RegistrarRevista()
         {
             Console.Clear();

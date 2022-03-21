@@ -8,11 +8,17 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
 {
     internal class Menu
     {
+
         Caixa[] caixas = new Caixa[10];
         Amigo[] amigos = new Amigo[100];
         Emprestimo[] listaDeEmprestimos = new Emprestimo[100];
+        Reserva[] reservas = new Reserva[100];
+        Categoria[] categorias = new Categoria[100];
+        public int contadorDaReserva = 0;
         public int contadorDaLista = 0;
+        public int contadorCategoria = 0;
         static DateTime[] dataDeAberturaDoChamado = new DateTime[100];
+        static DateTime[] tempoDeReserva = new DateTime[100];
         public void MenuInicial()
         {
             string opcao = "";
@@ -27,6 +33,8 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
                 Console.WriteLine("Digite 4 para Emprestar Revista");
                 Console.WriteLine("Digite 5 para Ver Emprestimos");
                 Console.WriteLine("Digite 6 para Devolver a revista");
+                Console.WriteLine("Digite 7 para Reservar uma revista");
+                Console.WriteLine("Digite 8 para ver Reservas");
                 Console.WriteLine();
                 Console.WriteLine("Digite 0 para ENCERRAR o programa");
 
@@ -52,7 +60,12 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
                     case "6":
                         DevolverRevista();
                         break;
-
+                    case "7":
+                        ReservarRevista();
+                        break;
+                    case "8":
+                        VerReservas();
+                        break;
                 }
                 
             }
@@ -107,15 +120,39 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
             if (caixas[opcao] != null)
             {
                 Revista revista = new Revista();
-                revista.RegistrarRevista();
-                for (int i = 0; i < 10; i++)
+                Console.Clear();
+                Console.WriteLine("Essa revista é novidade?");
+                Console.WriteLine("escreva 'sim' se for novidade");
+
+                string opcaoNovidade = Console.ReadLine();
+                if (opcaoNovidade == "sim")
                 {
-                    if (caixas[opcao].revistas[i] == null)
+                    revista.ehNovidade = true;
+                }
+                revista.RegistrarRevista();
+                Console.Clear();
+                
+                Categoria categoria = new Categoria();
+                categoria.NovaCategoria();
+                if (revista.ehNovidade == true && categoria.quantidadeDeDiasDeEmprestimo > 3)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Revistas que são novidades não podem ser emprestadas por mais de 3 dias");
+                    Console.ReadLine();
+                }
+                else
+                {
+                    for (int i = 0; i < 10; i++)
                     {
-                        caixas[opcao].revistas[i] = revista;
-                        break;
+                        if (caixas[opcao].revistas[i] == null)
+                        {
+                            caixas[opcao].revistas[i] = revista;
+                            categorias[contadorCategoria] = categoria;
+                            break;
+                        }
                     }
-                }                
+                }
+                             
             }            
         }
         //metodo caixa
@@ -273,7 +310,21 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
                 Console.Write("Digite o numero da revista: ");
                 int.TryParse(Console.ReadLine(), out int opcaoRevista);
 
-                if (caixas[opcaoCaixa].revistas[opcaoRevista].disponivelParaEmprestimo == false)
+                int contadorTeste = 0;
+                while(amigos[opcaoAmigo].nomeDoAmigo != reservas[contadorTeste].reservadaAo)
+                {
+                    contadorTeste++;
+                    if (contadorTeste > reservas.Length)
+                    {
+                        break;
+                    }
+                    else if (amigos[opcaoAmigo].nomeDoAmigo != reservas[contadorTeste].reservadaAo)
+                    {
+                        caixas[opcaoCaixa].revistas[opcaoRevista].possuiReserva = false;
+                        break;
+                    }
+                }
+                if (caixas[opcaoCaixa].revistas[opcaoRevista].disponivelParaEmprestimo == false || caixas[opcaoCaixa].revistas[opcaoRevista].possuiReserva == true)
                 {
                     Console.Clear();
                     Console.WriteLine("Revista não está Disponivel no momento");
@@ -330,7 +381,7 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
         {
             Console.Clear();
             Console.WriteLine("Lista de amigos");
-            int contador = 0;
+            
             for (int i = 0; i < amigos.Length; i++)
             {
                 if (amigos[i] != null && amigos[i].temEmprestimo == true)
@@ -412,6 +463,23 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
                 }
                 else
                 {
+                    for (int i = 0; i < tempoDeReserva.Length; i++)
+                    {
+                        if (categorias[i].RevistaCategoria == caixas[opcaoCaixa].revistas[opcaoRevista].nomeDaRevista)
+                        {
+                            TimeSpan diferenca = DateTime.Today - dataDeAberturaDoChamado[i];
+                            double dias = diferenca.TotalDays;
+
+                            if (dias > categorias[i].quantidadeDeDiasDeEmprestimo)
+                            {
+                                Console.WriteLine("Revista devolvida com atraso, cobrar MULTA");
+                                Console.ReadLine();
+                                break;
+                            }
+                        }
+                    }
+                    
+
                     caixas[opcaoCaixa].revistas[opcaoRevista].disponivelParaEmprestimo = true;
                     amigos[opcaoAmigo].temEmprestimo = false;
                 }
@@ -420,5 +488,133 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
 
 
         }
+        //metodo reserva
+        public void ReservarRevista()
+        {
+            Console.Clear();
+            Console.WriteLine("Lista de amigos");
+            for (int i = 0; i < amigos.Length; i++)
+            {
+                if (amigos[i] != null)
+                {
+                    Console.WriteLine(i + " - " + amigos[i].nomeDoAmigo + " - Possui reserva: " + amigos[i].possuiReserva);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            Console.WriteLine();
+            Console.Write("Qual amigo deseja reservar: ");
+            int.TryParse(Console.ReadLine(), out int opcaoAmigo);
+            Console.Clear();
+            //Escolher Caixa
+            if (amigos[opcaoAmigo].possuiReserva == true)
+            {
+                Console.WriteLine(amigos[opcaoAmigo].nomeDoAmigo + " Já possui uma reserva: ");
+                Console.ReadLine();
+            }
+            else
+            {
+                Console.Clear();
+                for (int i = 0; i < caixas.Length; i++)
+                {
+                    if (caixas[i] != null)
+                    {
+                        Console.WriteLine("------------------------------------------");
+                        Console.WriteLine(i + " - Caixa de: " + caixas[i].etiquetaDaCaixa);
+                        Console.WriteLine("------------------------------------------");
+                        for (int j = 0; j < caixas[i].revistas.Length; j++)
+                        {
+                            if (caixas[i].revistas[j] != null)
+                            {
+                                Console.WriteLine(caixas[i].revistas[j].nomeDaRevista);
+                            }
+                            else
+                            {
+                                break;
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                }
+                Console.WriteLine("------------------------------------");
+                Console.Write("Escolha a Caixa que deseja acessar: ");
+                int.TryParse(Console.ReadLine(), out int opcaoCaixa);
+
+                Console.Clear();
+                //Escolher Revista
+                Console.WriteLine(caixas[opcaoCaixa].etiquetaDaCaixa);
+                Console.WriteLine("---------------------------------");
+
+                for (int j = 0; j < caixas[opcaoCaixa].revistas.Length; j++)
+                {
+                    if (caixas[opcaoCaixa].revistas[j] != null)
+                    {
+                        Console.WriteLine(j + " - " + caixas[opcaoCaixa].revistas[j].nomeDaRevista);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                Console.WriteLine("----------------------------");
+                Console.Write("Digite o numero da revista: ");
+                int.TryParse(Console.ReadLine(), out int opcaoRevista);
+
+                
+                if (caixas[opcaoCaixa].revistas[opcaoRevista].possuiReserva == true)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Revista reservada");
+                    Console.ReadLine();
+                }
+                else
+                {
+                    caixas[opcaoCaixa].revistas[opcaoRevista].possuiReserva = true;
+                    amigos[opcaoAmigo].possuiReserva = true;
+                    Reserva reserva = new Reserva();
+                    reserva.RegistrarReservas();
+                    reservas[contadorDaReserva] = reserva;
+                    reservas[contadorDaReserva].reservadaAo = amigos[opcaoAmigo].nomeDoAmigo;
+                    reservas[contadorDaReserva].revistaReservada = caixas[opcaoCaixa].revistas[opcaoRevista].nomeDaRevista;
+                    tempoDeReserva[contadorDaReserva] = Convert.ToDateTime(reservas[contadorDaReserva].strDataDaReserva);
+                    contadorDaReserva++;
+                }
+            }
+        }
+        public void VerReservas()
+        {
+            Console.Clear();
+            for (int i = 0; i < caixas.Length; i++)
+            {                
+                if(reservas[i] != null)
+                {
+                    Console.WriteLine(reservas[i].revistaReservada + " Reservada para: " + reservas[i].reservadaAo);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            
+            Console.WriteLine("---------------------------");
+            Console.WriteLine("Deseja realizar o emprestimo de alguma revista?");
+            Console.WriteLine("Escreva 'sim' para realizar o emprestimo");
+            string opcao = Console.ReadLine();
+            if (opcao == "sim")
+            {
+                EmprestarRevista();
+            }
+
+        }
+        //metodo categoria
+        
     }
 }

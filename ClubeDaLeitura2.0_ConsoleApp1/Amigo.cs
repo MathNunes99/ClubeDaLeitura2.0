@@ -10,7 +10,7 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
     {
         public string nomeDoAmigo, nomeDoResponsavel, contatoDoAmigo, enderecoDoAmigo;
         public bool temEmprestimo = false;
-
+        public bool possuiReserva = false;
         public void RegistrarAmigo()
         {
             Console.Clear();
@@ -27,9 +27,6 @@ namespace ClubeDaLeitura2._0_ConsoleApp1
             enderecoDoAmigo = Console.ReadLine().ToUpper();
 
         }
-        public void EmprestarRevista()
-        {
-            temEmprestimo=true;
-        }
+        
     }
 }
